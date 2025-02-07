@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edukasi Wayang Jawa</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;700&family=Raleway:wght@300;600&display=swap');
+
+        body {
+            background: url('wayang.jpg') no-repeat center center/cover;
+            text-align: center;
+            font-family: 'EB Garamond', serif;
+            color: white;
+            overflow-x: hidden;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            font-family: 'Raleway', sans-serif;
+            font-weight: 700;
+            font-size: 2.5em;
+        }
+        .events-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+        }
+        .event {
+            cursor: pointer;
+            transition: transform 0.3s;
+            perspective: 1000px;
+        }
+        .flip-card {
+            width: 250px;
+            height: 300px;
+            transform-style: preserve-3d;
+            transition: transform 0.6s;
+            position: relative;
+        }
+        .flip-card:hover {
+            transform: rotateY(180deg);
+        }
+        .flip-card-front, .flip-card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 10px;
+        }
+        .flip-card-front {
+            background: #333;
+        }
+        .flip-card-front img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 10px;
+        }
+        .flip-card-back {
+            background: #ffcc00;
+            color: black;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transform: rotateY(180deg);
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+        .history {
+            display: none;
+            margin-top: 40px;
+            text-align: left;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 10px;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            opacity: 0;
+            transition: opacity 0.5s, transform 0.5s;
+        }
+        .history.active {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .history img {
+            width: 100%;
+            max-height: 300px;
+            object-fit: cover;
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+        .nav-btn {
+            background: #ffcc00;
+            color: black;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        .nav-btn:hover {
+            background: #e6b800;
+        }
+        .paragraph-indicator {
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #ffcc00;
+            margin-bottom: 10px;
+        }
+        @media (max-width: 768px) {
+            .events-container {
+                flex-direction: column;
+                align-items: center;
+            }
+            .flip-card {
+                width: 200px;
+                height: 250px;
+            }
+            .history img {
+                max-height: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Wayang Jawa & Filosofi Kehidupan</h1>
+    <p>Klik salah satu wayang untuk melihat ceritanya.</p>
+    
+    <div id="events" class="events-container"></div>
+    
+    <div id="history-section" class="history">
+        <img id="history-img" src="" alt="Wayang">
+        <h2 id="history-title"></h2>
+        <p class="paragraph-indicator" id="paragraph-indicator"></p>
+        <p id="history-text"></p>
+        <button class="nav-btn" onclick="prevParagraph()">Sebelumnya</button>
+        <button class="nav-btn" onclick="nextParagraph()">Lanjut</button>
+    </div>
+    
+    <script>
+        let historyData = [
+            {
+                img: "arjuna.jpg",
+                title: "Arjuna - Ksatria Bijaksana",
+                paragraphs: [
+                    "Arjuna adalah tokoh dalam pewayangan yang melambangkan kebijaksanaan dan keberanian.",
+                    "Ia terkenal karena kecakapannya dalam memanah dan kepemimpinan yang adil.",
+                    "Dalam Mahabharata, Arjuna mendapatkan ajaran mendalam dari Krishna melalui Bhagavad Gita."
+                ]
+            },
+            {
+                img: "arjuna.jpg",
+                title: "Bima - Ksatria Gagah Berani",
+                paragraphs: [
+                    "Bima adalah tokoh yang memiliki kekuatan luar biasa dan hati yang tulus.",
+                    "Ia selalu membela kebenaran dan tidak ragu melawan ketidakadilan.",
+                    "Dikenal sebagai pengayom rakyat kecil, Bima adalah simbol keadilan."
+                ]
+            }
+        ];
+        
+        function populateEvents() {
+            let eventsContainer = document.getElementById('events');
+            eventsContainer.innerHTML = '';
+            historyData.forEach((data, index) => {
+                let eventElement = document.createElement('div');
+                eventElement.classList.add('event');
+                eventElement.onclick = function() { showHistory(index); };
+                eventElement.innerHTML = `
+                    <div class="flip-card">
+                        <div class="flip-card-front">
+                            <img src="${data.img}" alt="${data.title}">
+                        </div>
+                        <div class="flip-card-back">
+                            <p>${data.title}</p>
+                        </div>
+                    </div>
+                `;
+                eventsContainer.appendChild(eventElement);
+            });
+        }
+        
+        let currentStep = 0;
+        let currentParagraph = 0;
+        function showHistory(step) {
+            currentStep = step;
+            currentParagraph = 0;
+            updateHistory();
+            document.getElementById('history-section').classList.add('active');
+        }
+        
+        function nextParagraph() {
+            if (currentParagraph < historyData[currentStep].paragraphs.length - 1) {
+                currentParagraph++;
+                animateText();
+            }
+        }
+        
+        function prevParagraph() {
+            if (currentParagraph > 0) {
+                currentParagraph--;
+                animateText();
+            }
+        }
+        
+        function animateText() {
+            let textElement = document.getElementById('history-text');
+            textElement.style.opacity = '0';
+            setTimeout(() => {
+                updateHistory();
+                textElement.style.opacity = '1';
+            }, 400);
+        }
+        
+        function updateHistory() {
+            document.getElementById('history-img').src = historyData[currentStep].img;
+            document.getElementById('history-title').textContent = historyData[currentStep].title;
+            document.getElementById('history-text').textContent = historyData[currentStep].paragraphs[currentParagraph];
+            document.getElementById('paragraph-indicator').textContent = `Paragraf ${currentParagraph + 1} dari ${historyData[currentStep].paragraphs.length}`;
+        }
+        
+        populateEvents();
+    </script>
+</body>
+</html>
